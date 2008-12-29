@@ -1,5 +1,7 @@
 #!/usr/bin/ruby
 require 'rubygems'
+require 'term/ansicolor'
+
 begin
   require "#{File.join(File.dirname(__FILE__), '../lib/pangea.rb')}"
 rescue
@@ -13,21 +15,20 @@ end
 
 hc = Pangea::Cluster.new(config['cluster_nodes'])
 
-def humanize(quantity)
-  m = quantity.to_i
-  units = %w[Bits Bytes MB GB]
-  while (m/1024.0) >= 1 
-    m = m/1024.0
-    units.shift
-  end
-  return m.round.to_s + " #{units[0]}"
+class String
+  include Term::ANSIColor
 end
 
 hc.hosts.each do |h|
-  puts h.name_label
-  puts "Total memory: " + h.metrics.memory_total + " bytes (#{humanize(h.metrics.memory_total)})"
-  puts "Free memory: " + h.metrics.memory_free + " bytes (#{humanize(h.metrics.memory_free)})"
+  puts h.name_label.bold
+  tmb = h.metrics.memory_total
+  fmb = h.metrics.memory_free
+  total_mem = Pangea::Util.humanize_bytes(tmb)
+  free_mem = Pangea::Util.humanize_bytes(fmb)
+  puts "  Total memory: #{total_mem} (#{tmb})"
+  puts "  Free memory: #{free_mem} (#{fmb})"
+  puts "  Resident VMs"
   h.resident_vms.each do |vm|
-    puts "  " + vm.name_label
+    puts "    " + vm.name_label
   end
 end
