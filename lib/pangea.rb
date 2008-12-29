@@ -31,6 +31,7 @@ module Pangea
     end
 
     def [](name)
+      hosts if @index.empty?
       @index[name]
     end
 
