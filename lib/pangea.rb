@@ -20,6 +20,7 @@ module Pangea
 
   class Cluster
     def initialize(hosts={})
+      @index = {}
       @links = []
       hosts.each_key do |n|
         @links << Link.new(hosts[n]['url'], 
@@ -29,11 +30,16 @@ module Pangea
       end
     end
 
+    def [](name)
+      @index[name]
+    end
+
     def hosts
       list = []
       @links.each do |hl|
         ref = hl.client.call('host.get_all', hl.sid)['Value'][0]
         h = Host.new(hl, ref, hl.client.proxy('host'))
+        @index[h.name_label] = h
         list << h
       end
       list
@@ -42,9 +48,12 @@ module Pangea
 
   class Link
 
-    attr_reader :client, :session, :sid
+    attr_reader :client, :session, :sid, :url, :password, :username
 
     def initialize(url, username='foo', password='bar')
+      @xmlrpc_url = url
+      @username = username
+      @password = password
       puts "hyperlinking to #{url}"
       $stdout.flush
       @client = XMLRPC::Client.new2(url)
