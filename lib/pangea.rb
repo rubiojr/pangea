@@ -42,12 +42,12 @@ module Pangea
     def send(proxy, method, *args)
       p = ""
       if args.empty?
-        return eval "@#{proxy.to_s}.#{method}(@sid)"
+        return eval("@#{proxy.to_s}.#{method}(@sid)")
       else
         args.each do |a|
           p += ",'#{a}'"
         end
-        return eval "@#{proxy.to_s}.#{method}(@sid #{p})"
+        return eval("@#{proxy.to_s}.#{method}(@sid #{p})")
       end
     end
   end
