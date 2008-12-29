@@ -1,0 +1,33 @@
+#!/usr/bin/ruby
+require 'rubygems'
+begin
+  require "#{File.join(File.dirname(__FILE__), '../lib/pangea.rb')}"
+rescue
+  require 'pangea'
+end
+
+config = nil
+File.open 'config.yml' do |f|
+  config = YAML.load f
+end
+
+hc = Pangea::Cluster.new(config['cluster_nodes'])
+
+def humanize(quantity)
+  m = quantity.to_i
+  units = %w[Bits Bytes MB GB]
+  while (m/1024.0) >= 1 
+    m = m/1024.0
+    units.shift
+  end
+  return m.round.to_s + " #{units[0]}"
+end
+
+hc.hosts.each do |h|
+  puts h.name_label
+  puts "Total memory: " + h.metrics.memory_total + " bytes (#{humanize(h.metrics.memory_total)})"
+  puts "Free memory: " + h.metrics.memory_free + " bytes (#{humanize(h.metrics.memory_free)})"
+  h.resident_vms.each do |vm|
+    puts "  " + vm.name_label
+  end
+end

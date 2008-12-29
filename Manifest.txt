@@ -1,0 +1,7 @@
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/pangea
+lib/pangea.rb
+test/test_pangea.rb
