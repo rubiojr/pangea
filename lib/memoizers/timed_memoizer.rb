@@ -21,7 +21,6 @@ module Pangea
           @@refreshing_time = #{p[:refreshing_time] || 30}
           def #{memoized_method_name}(*args)
             if defined?(#{ivar_name}) and (Time.now - #{ivar_name}_tsample) < @@refreshing_time
-              puts 'memoized value'
               #{ivar_name}
             else
               #{ivar_name}_tsample =  Time.now

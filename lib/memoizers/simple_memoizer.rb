@@ -23,7 +23,6 @@ module Pangea
         self.class_eval "
           def #{memoized_method_name}(*args)
             if defined?(#{ivar_name})
-              puts 'memoized value'
               #{ivar_name}
             else
               #{ivar_name} = #{regular_method_name}(*args)
