@@ -19,15 +19,10 @@ module Pangea
   end
 
   class Cluster
-    def initialize(hosts={})
+    def initialize(nodes={})
       @index = {}
       @links = []
-      hosts.each_key do |n|
-        @links << Link.new(hosts[n]['url'], 
-                                  hosts[n]['username'] || '', 
-                                  hosts[n]['passwor'] || ''
-                                  ) 
-      end
+      @nodes = nodes
     end
 
     def [](name)
@@ -36,6 +31,7 @@ module Pangea
     end
 
     def hosts
+      init_links
       list = []
       @links.each do |hl|
         ref = hl.client.call('host.get_all', hl.sid)['Value'][0]
@@ -44,6 +40,18 @@ module Pangea
         list << h
       end
       list
+    end
+
+
+    private
+    def init_links
+      return if not @links.empty?
+      @nodes.each_key do |n|
+        @links << Link.new(@nodes[n]['url'], 
+                           @nodes[n]['username'] || '', 
+                           @nodes[n]['password'] || ''
+                          ) 
+      end
     end
   end
 
