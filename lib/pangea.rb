@@ -1,24 +1,17 @@
 require 'xmlrpc/client'
+require "#{File.join(File.dirname(__FILE__), 'memoizers/timed_memoizer.rb')}"
+require "#{File.join(File.dirname(__FILE__), 'memoizers/simple_memoizer.rb')}"
+require "#{File.join(File.dirname(__FILE__), 'memoizers/strategy.rb')}"
+require "#{File.join(File.dirname(__FILE__), 'util/string.rb')}"
+
+Module.send :include, Pangea::Memoizers::Strategy
 
 module Pangea
 
-  VERSION = '0.0.1'
-
-  module Util
-
-    def self.humanize_bytes(bytes)
-      m = bytes.to_i
-      units = %w[Bits Bytes MB GB]
-      while (m/1024.0) >= 1 
-        m = m/1024.0
-        units.shift
-      end
-      return m.round.to_s + " #{units[0]}"
-    end
-
-  end
+  VERSION = '0.0.10'
 
   class Cluster
+
     def initialize(nodes={})
       @index = {}
       @links = []
@@ -42,7 +35,6 @@ module Pangea
       list
     end
 
-
     private
     def init_links
       return if not @links.empty?
@@ -53,6 +45,8 @@ module Pangea
                           ) 
       end
     end
+    
+    memoize :hosts
   end
 
   class Link
@@ -99,6 +93,7 @@ module Pangea
 
   class Host < XObject
 
+
     def initialize(link, ref, proxy)
       super(link, ref, proxy)
     end
@@ -122,7 +117,10 @@ module Pangea
     def metrics
       HostMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('host_metrics'))
     end
-
+    
+    memoize :metrics
+    memoize :name_label
+    memoize :resident_vms
   end
 
   class HostMetrics < XObject
@@ -137,6 +135,9 @@ module Pangea
     def memory_free
       ref_call :get_memory_free
     end
+    
+    memoize :memory_free
+    memoize :memory_total
   end
 
   class VM < XObject
@@ -147,6 +148,8 @@ module Pangea
     def name_label
       ref_call :get_name_label
     end
+
+    memoize :name_label
   end 
 end # module Pangea
 
