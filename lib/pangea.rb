@@ -114,13 +114,42 @@ module Pangea
       vms
     end
 
+    # 
+    # xen-api: Host.get_host_cpus
+    #
+    def cpus
+      list = []
+      ref_call(:get_host_CPUs).each do |hcpu|
+        list << HostCpu.new(@link, hcpu, @link.client.proxy('host_cpu'))
+      end
+      list
+    end
+    
+    #
+    # xen-api: Host.get_software_version
+    #
+    # Returns a Hash
+    #
+    def software_version
+      ref_call :get_software_version
+    end
+    
+    #
+    # xen-api: Host.get_sched_policy
+    #
+    def sched_policy
+      ref_call :get_sched_policy
+    end
+
     def metrics
       HostMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('host_metrics'))
     end
     
     memoize :metrics
+    memoize :sched_policy
     memoize :label
     memoize :resident_vms
+    memoize :software_version
   end
 
   class HostMetrics < XObject
@@ -139,6 +168,59 @@ module Pangea
     memoize :memory_free
     memoize :memory_total
   end
+  
+  class HostCpu < XObject
+    def initialize(link, ref, proxy)
+      super(link, ref, proxy)
+    end
+
+    #
+    # xen-api: host_cpu.get_number
+    #
+    def number
+      ref_call :get_number
+    end
+    
+    #
+    # xen-api: host_cpu.get_vendor
+    #
+    def vendor
+      ref_call :get_vendor
+    end
+    
+    #
+    # xen-api: host_cpu.get_speed
+    #
+    # CPU Speed in MHz
+    #
+    def speed
+      ref_call :get_speed
+    end
+    
+    #
+    # xen-api: host_cpu.get_modelname
+    #
+    # CPU Model
+    #
+    def model_name
+      ref_call :get_modelname
+    end
+    
+    #
+    # xen-api: host_cpu.get_utilisation
+    #
+    # CPU Utilisation
+    #
+    def model_name
+      ref_call :get_utilisation
+    end
+
+    memoize :model_name
+    memoize :speed
+    memoize :vendor
+    memoize :number
+  end
+
 
   class VM < XObject
     def initialize(link, ref, proxy)
