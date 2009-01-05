@@ -299,7 +299,6 @@ module Pangea
     
     def to_s
       eol = "\n"
-      "[VM]" + eol +
       "Label: #{label}" + eol +
       "Power State: #{power_state}" + eol +
       "Mem: #{Util::humanize_bytes(dyn_min_mem)}" + eol +
