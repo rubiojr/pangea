@@ -144,6 +144,13 @@ module Pangea
     def metrics
       HostMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('host_metrics'))
     end
+
+    def to_s
+      "Label: #{label}\n" +
+      "UUID: #{uuid}\n" +
+      "Sched Policy: #{sched_policy}\n" +
+      "Xen Version: #{software_version['Xen']}"
+    end
     
     memoize :metrics
     memoize :sched_policy
@@ -163,6 +170,11 @@ module Pangea
     
     def memory_free
       ref_call :get_memory_free
+    end
+
+    def to_s
+      "Total Memory: #{Pangea::Util.humanize_bytes(memory_total)}\n" +
+      "Free Memory: #{Pangea::Util.humanize_bytes(memory_free)}"
     end
     
     memoize :memory_free
@@ -226,6 +238,13 @@ module Pangea
     def initialize(link, ref, proxy)
       super link, ref, proxy
     end
+    
+    #
+    # xen-api: VM.get_uuid
+    #
+    def uuid
+      ref_call :get_uuid
+    end
 
     #
     # xen-api: VM.get_name_label
@@ -278,14 +297,13 @@ module Pangea
     #  Host.new(hl, ref, hl.client.proxy('host'))
     #end
     
-    def inspect
+    def to_s
       eol = "\n"
       "[VM]" + eol +
       "Label: #{label}" + eol +
       "Power State: #{power_state}" + eol +
       "Mem: #{Util::humanize_bytes(dyn_min_mem)}" + eol +
       "Max Mem: #{Util::humanize_bytes(max_mem)}" + eol
-
     end
 
     memoize :label
@@ -351,7 +369,7 @@ module Pangea
       (ref_call :get_last_updated).to_time
     end
 
-    def inspect
+    def to_s
       vcpu_u = ""
       vcpus_utilisation.each do |k, v|
         vcpu_u += "#{k}: %0.2f\n" % (v * 100)
