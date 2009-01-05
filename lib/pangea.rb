@@ -300,6 +300,7 @@ module Pangea
     def to_s
       eol = "\n"
       "Label: #{label}" + eol +
+      "UUID: #{uuid}" + eol +
       "Power State: #{power_state}" + eol +
       "Mem: #{Util::humanize_bytes(dyn_min_mem)}" + eol +
       "Max Mem: #{Util::humanize_bytes(max_mem)}" + eol
