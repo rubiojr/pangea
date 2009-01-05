@@ -4,7 +4,7 @@ require "#{File.join(File.dirname(__FILE__), 'memoizers/simple_memoizer.rb')}"
 require "#{File.join(File.dirname(__FILE__), 'memoizers/strategy.rb')}"
 require "#{File.join(File.dirname(__FILE__), 'util/string.rb')}"
 
-Module.send :include, Pangea::Memoizers::Strategy
+Module.send :include, Pangea::Memoizers.strategy
 
 module Pangea
 

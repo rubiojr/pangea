@@ -1,8 +1,14 @@
 module Pangea
   module Memoizers
-    module Strategy
-      puts 'using memoizing strategy TimedMemoizer'
-      include Pangea::Memoizers::TimedMemoizer
+
+    def self.strategy=(mod)
+      puts "using memoizing strategy #{mod}"
+      @strategy = mod
     end
+
+    def self.strategy
+      @strategy || Pangea::Memoizers::TimedMemoizer
+    end
+
   end
 end
