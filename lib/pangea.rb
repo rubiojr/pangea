@@ -223,7 +223,7 @@ module Pangea
     #
     # CPU Utilisation
     #
-    def model_name
+    def utilisation
       ref_call :get_utilisation
     end
 
