@@ -228,6 +228,7 @@ module Pangea
     end
 
     memoize :model_name
+    memoize :utilisation
     memoize :speed
     memoize :vendor
     memoize :number
