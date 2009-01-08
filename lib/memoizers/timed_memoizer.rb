@@ -18,7 +18,7 @@ module Pangea
         return if self.method_defined?(memoized_method_name)
     
         self.class_eval "
-          @@refreshing_time = #{p[:refreshing_time] || 300}
+          @@refreshing_time = #{p[:refreshing_time] || 30}
           def #{memoized_method_name}(*args)
             if defined?(#{ivar_name}) and (Time.now - #{ivar_name}_tsample) < @@refreshing_time
               #{ivar_name}
