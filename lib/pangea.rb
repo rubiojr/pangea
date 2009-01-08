@@ -253,9 +253,6 @@ module Pangea
 
 
   class VM < XObject
-    def initialize(link, ref, proxy)
-      super link, ref, proxy
-    end
     
     #
     # xen-api: VM.get_uuid
@@ -393,6 +390,17 @@ module Pangea
 
     memoize :label
     memoize :metrics
+    memoize :vifs
+    memoize :actions_after_crash
+    memoize :actions_after_reboot
+    memoize :actions_after_shutdown
+    memoize :domid
+    memoize :resident_on
+    memoize :power_state
+    memoize :max_mem
+    memoize :dyn_min_mem
+    memoize :dyn_max_mem
+    memoize :uuid
   end 
 
 
@@ -506,7 +514,7 @@ module Pangea
     # xen-api: VIF.get_vm
     #
     def vm
-      VM.new(@link, ref_call(:get_vm), @link.client.proxy('VM'))
+      VM.new(@link, ref_call(:get_VM), @link.client.proxy('VM'))
     end
 
     #
@@ -517,6 +525,11 @@ module Pangea
     #  Network.new(@link, ref_call(:get_network), @link.client.proxy('network'))
     #end
     
+    memoize :vm
+    memoize :metrics
+    memoize :mac
+    memoize :device
+    memoize :uuid
   end
 
   class VIFMetrics < XObject
@@ -528,6 +541,8 @@ module Pangea
     def io_write_kbs
       ref_call :get_io_write_kbs
     end
+    memoize :io_read_kbs
+    memoize :io_write_kbs
   end
 
   class Network < XObject
@@ -569,6 +584,7 @@ module Pangea
       end
       l
     end
+
   end
 
 end # module Pangea
