@@ -93,6 +93,7 @@ module Pangea
       ref_call :get_uuid
     end
     
+    memoize :uuid
   end
 
   class Host < XObject
@@ -100,10 +101,6 @@ module Pangea
 
     def initialize(link, ref, proxy)
       super(link, ref, proxy)
-    end
-
-    def uuid
-      ref_call :get_uuid
     end
 
     def label
@@ -255,13 +252,6 @@ module Pangea
   class VM < XObject
     
     #
-    # xen-api: VM.get_uuid
-    #
-    def uuid
-      ref_call :get_uuid
-    end
-
-    #
     # xen-api: VM.get_name_label
     #
     def label
@@ -400,7 +390,6 @@ module Pangea
     memoize :max_mem
     memoize :dyn_min_mem
     memoize :dyn_max_mem
-    memoize :uuid
   end 
 
 
@@ -483,13 +472,6 @@ module Pangea
   class VIF < XObject
     
     #
-    # xen-api: VIF.get_uuid
-    #
-    def uuid
-      ref_call :get_uuid
-    end
-    
-    #
     # xen-api: VIF.get_device
     #
     def device
@@ -529,7 +511,6 @@ module Pangea
     memoize :metrics
     memoize :mac
     memoize :device
-    memoize :uuid
   end
 
   class VIFMetrics < XObject
