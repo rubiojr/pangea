@@ -328,10 +328,10 @@ module Pangea
     #
     # xen-api: VM.get_resident_on
     #
-    #def resident_on
-    #  ref = ref_cal :get_power_state
-    #  Host.new(hl, ref, hl.client.proxy('host'))
-    #end
+    def resident_on
+      ref = ref_call(:get_resident_on)
+      Host.new(@link, ref, @link.client.proxy('host'))
+    end
     
     #
     # xen-api: VM.get_domid
@@ -373,6 +373,13 @@ module Pangea
     #
     def actions_after_reboot
       ref_call :get_actions_after_reboot
+    end
+    
+    #
+    # xen-api: VM.get_actions_after_crash
+    #
+    def actions_after_crash
+      ref_call :get_actions_after_crash
     end
     
     def to_s
