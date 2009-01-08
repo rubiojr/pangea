@@ -171,6 +171,7 @@ module Pangea
     memoize :label
     memoize :resident_vms
     memoize :software_version
+    memoize :cpus
   end
 
   class HostMetrics < XObject
