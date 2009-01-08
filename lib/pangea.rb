@@ -175,10 +175,7 @@ module Pangea
   end
 
   class HostMetrics < XObject
-    def initialize(link, ref, proxy)
-      super(link, ref, proxy)
-    end
-
+    
     def memory_total
       ref_call :get_memory_total
     end
@@ -197,10 +194,6 @@ module Pangea
   end
   
   class HostCpu < XObject
-    def initialize(link, ref, proxy)
-      super(link, ref, proxy)
-    end
-
     #
     # xen-api: host_cpu.get_number
     #
