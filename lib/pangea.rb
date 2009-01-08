@@ -8,7 +8,7 @@ Module.send :include, Pangea::Memoizers.strategy
 
 module Pangea
 
-  VERSION = '0.0.10'
+  VERSION = '0.0.20'
 
   class Cluster
 
@@ -64,17 +64,17 @@ module Pangea
       @sid = @session.login_with_password(username, password)['Value']
     end
 
-    def send(proxy, method, *args)
-      p = ""
-      if args.empty?
-        return eval("@#{proxy.to_s}.#{method}(@sid)")
-      else
-        args.each do |a|
-          p += ",'#{a}'"
-        end
-        return eval("@#{proxy.to_s}.#{method}(@sid #{p})")
-      end
-    end
+    #def send(proxy, method, *args)
+    #  p = ""
+    #  if args.empty?
+    #    return eval("@#{proxy.to_s}.#{method}(@sid)")
+    #  else
+    #    args.each do |a|
+    #      p += ",'#{a}'"
+    #    end
+    #    return eval("@#{proxy.to_s}.#{method}(@sid #{p})")
+    #  end
+    #end
   end
 
   class XObject
@@ -87,6 +87,10 @@ module Pangea
 
     def ref_call(method)
       @proxy.send(method, @link.sid, @ref)['Value']
+    end
+
+    def uuid
+      ref_call :get_uuid
     end
     
   end
@@ -145,13 +149,26 @@ module Pangea
       HostMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('host_metrics'))
     end
 
+    #
+    # There's no direct mapping to xen-api
+    #
+    def networks
+      nets = [] 
+      p = @link.client.proxy( 'network' )
+      p.get_all(@link.sid)['Value'].each do |ref|
+        nets << Network.new(@link, ref, p)
+      end
+      nets
+    end
+
     def to_s
       "Label: #{label}\n" +
       "UUID: #{uuid}\n" +
       "Sched Policy: #{sched_policy}\n" +
       "Xen Version: #{software_version['Xen']}"
     end
-    
+
+    memoize :networks
     memoize :metrics
     memoize :sched_policy
     memoize :label
@@ -260,6 +277,24 @@ module Pangea
     def metrics
       VMMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('VM_metrics'))
     end
+    
+    #
+    # xen-api: VM.get_guest_metrics
+    #
+    def guest_metrics
+      VMGuestMetrics.new(@link, ref_call(:get_guest_metrics), @link.client.proxy('VM_guest_metrics'))
+    end
+
+    #
+    # xen-api: VM.get_VIFs
+    #
+    def vifs
+      list = []
+      ref_call(:get_VIFs).each do |vif|
+        list << VIF.new(@link, vif, @link.client.proxy('VIF'))
+      end
+      list
+    end
 
     #
     # xen-api: VM.get_power_state
@@ -298,6 +333,48 @@ module Pangea
     #  Host.new(hl, ref, hl.client.proxy('host'))
     #end
     
+    #
+    # xen-api: VM.get_domid
+    #
+    def domid
+      (ref = ref_call :get_domid).to_i
+    end
+    
+    #
+    # xen-api: VM.get_is_control_domain
+    #
+    def is_control_domain?
+      ref_call :get_is_control_domain
+    end
+    
+    #
+    # xen-api: VM.get_auto_power_on
+    #
+    #def auto_power_on?
+    #  puts ref_call :get_auto_power_on
+    #end
+    
+    #
+    # xen-api: VM.get_actions_after_shutdown
+    #
+    def actions_after_shutdown
+      ref_call :get_actions_after_shutdown
+    end
+    
+    #
+    # xen-api: VM.get_pv_kernel
+    #
+    def pv_kernel
+      ref_call :get_PV_kernel
+    end
+    
+    #
+    # xen-api: VM.get_actions_after_reboot
+    #
+    def actions_after_reboot
+      ref_call :get_actions_after_reboot
+    end
+    
     def to_s
       eol = "\n"
       "Label: #{label}" + eol +
@@ -311,15 +388,18 @@ module Pangea
     memoize :metrics
   end 
 
+
+  #
+  # xen-api class: VM_guest_metrics
+  #
+  class VMGuestMetrics < XObject
+  end
+
   #
   # xen-api class: VM_metrics
   #
   class VMMetrics < XObject
     
-    def initialize(link, ref, proxy)
-      super(link, ref, proxy)
-    end
-
     #
     # xen-api: VM_metrics.get_memory_actual
     #
@@ -384,5 +464,105 @@ module Pangea
       vcpu_u
     end
   end
+  
+  class VIF < XObject
+    
+    #
+    # xen-api: VIF.get_uuid
+    #
+    def uuid
+      ref_call :get_uuid
+    end
+    
+    #
+    # xen-api: VIF.get_device
+    #
+    def device
+      ref_call :get_device
+    end
+    
+    #
+    # xen-api: VIF.get_MAC
+    #
+    def mac
+      ref_call :get_MAC
+    end
+    
+    #
+    # xen-api: VIF.get_metrics
+    #
+    def metrics
+      VIFMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('VIF_metrics'))
+    end
+
+    #
+    # xen-api: VIF.get_vm
+    #
+    def vm
+      VM.new(@link, ref_call(:get_vm), @link.client.proxy('VM'))
+    end
+
+    #
+    # xen-api: VIF.get_network
+    # FIXME
+    #
+    #def network
+    #  Network.new(@link, ref_call(:get_network), @link.client.proxy('network'))
+    #end
+    
+  end
+
+  class VIFMetrics < XObject
+
+    def io_read_kbs
+      ref_call :get_io_read_kbs
+    end
+
+    def io_write_kbs
+      ref_call :get_io_write_kbs
+    end
+  end
+
+  class Network < XObject
+    def label
+      ref_call :get_name_label
+    end
+
+    #
+    # xen-api: network.get_default_gateway
+    #
+    # returns a string or nil if the gateway is not
+    # defined.
+    #
+    def default_gateway
+      gw = ref_call :get_default_gateway
+      return nil if gw.strip.chomp.empty?
+      gw
+    end
+    
+    #
+    # xen-api: network.get_default_netmask
+    #
+    # returns a string or nil if the netmask is not
+    # defined.
+    #
+    def default_netmask
+      nm = ref_call :get_default_netmask
+      return nil if nm.strip.chomp.empty?
+      gw
+    end
+
+    #
+    # xen-api: network.get_VIFs
+    #
+    def vifs
+      l = []
+      ref_call(:get_VIFs).each do |ref|
+        l << VIF.new(@link, ref, @link.client.proxy('VIF'))
+      end
+      l
+    end
+  end
+
 end # module Pangea
 
