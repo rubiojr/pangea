@@ -1,12 +1,13 @@
 require 'test/unit'
 require 'lib/pangea'
+require 'test/config.rb'
 
 class TestVIF < Test::Unit::TestCase
 
   def setup
     @hc = Pangea::Cluster.new(
       { 'xen7' => {
-          'url' => 'http://xen7.gestion.privada.csic.es:9363'
+          'url' => TEST_HV
         }
       }
     )

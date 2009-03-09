@@ -1,12 +1,13 @@
 require 'test/unit'
 require 'lib/pangea'
+require 'test/config.rb'
 
 class TestVM < Test::Unit::TestCase
 
   def setup
     @hc = Pangea::Cluster.new(
       { 'xen7' => {
-          'url' => 'http://xen7.gestion.privada.csic.es:9363'
+          'url' => TEST_HV
         }
       }
     )
@@ -21,7 +22,7 @@ class TestVM < Test::Unit::TestCase
   def test_is_control_domain?
     @hc.hosts[0].resident_vms.each do |vm|
       assert( 
-             vm.is_control_domain?.is_a? (TrueClass) || \
+             vm.is_control_domain?.is_a?(TrueClass) || \
              vm.is_control_domain?.is_a?(FalseClass) 
             )
     end
@@ -62,6 +63,13 @@ class TestVM < Test::Unit::TestCase
   def test_guest_metrics
     @hc.hosts[0].resident_vms.each do |vm|
       assert( vm.guest_metrics.is_a? Pangea::VMGuestMetrics )
+    end
+  end
+
+  def test_resident_on
+    @hc.hosts[0].resident_vms.each do |vm|
+      assert( vm.resident_on.is_a?(Pangea::Host) )
+      assert( vm.resident_on.uuid.is_a?(String) )
     end
   end
 
