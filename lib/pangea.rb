@@ -15,20 +15,26 @@ module Pangea
     def initialize(nodes={})
       @index = {}
       @links = []
-      @nodes = nodes
+      @cluster_nodes = nodes
     end
 
     def [](name)
-      hosts if @index.empty?
+      nodes if @index.empty?
       @index[name]
     end
 
+    # Deprecated, use Cluster.nodes
     def hosts
+      puts "WARNING: Cluster.hosts is deprecated. Use Cluster.nodes instead"
+      nodes
+    end
+
+    def nodes
       init_links
       list = []
       @links.each do |hl|
         ref = hl.client.call('host.get_all', hl.sid)['Value'][0]
-        h = Host.new(hl, ref, hl.client.proxy('host'))
+        h = Host.new(hl, ref)
         @index[h.label] = h
         list << h
       end
@@ -38,20 +44,20 @@ module Pangea
     private
     def init_links
       return if not @links.empty?
-      @nodes.each_key do |n|
-        @links << Link.new(@nodes[n]['url'], 
-                           @nodes[n]['username'] || '', 
-                           @nodes[n]['password'] || ''
+      @cluster_nodes.each_key do |n|
+        @links << Link.new(@cluster_nodes[n]['url'], 
+                           @cluster_nodes[n]['username'] || '', 
+                           @cluster_nodes[n]['password'] || ''
                           ) 
       end
     end
     
-    memoize :hosts
+    memoize :nodes
   end
 
   class Link
 
-    attr_reader :client, :session, :sid, :url, :password, :username
+    attr_reader :client, :sid, :url
 
     def initialize(url, username='foo', password='bar')
       @xmlrpc_url = url
@@ -79,13 +85,16 @@ module Pangea
 
   class XObject
 
-    def initialize(link, ref, proxy)
+    def initialize(link, ref)
       @ref = ref
       @link = link
-      @proxy = proxy
+      @proxy_name = nil
     end
 
     def ref_call(method)
+      if @proxy.nil?
+        @proxy = @link.client.proxy(@proxy_name)
+      end
       @proxy.send(method, @link.sid, @ref)['Value']
     end
 
@@ -97,10 +106,10 @@ module Pangea
   end
 
   class Host < XObject
-
-
-    def initialize(link, ref, proxy)
-      super(link, ref, proxy)
+    
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'host'
     end
 
     def label
@@ -110,7 +119,7 @@ module Pangea
     def resident_vms
       vms = []
       ref_call(:get_resident_VMs).each do |vm|
-        vms << VM.new(@link, vm, @link.client.proxy('VM'))
+        vms << VM.new(@link, vm)
       end
       vms
     end
@@ -121,7 +130,7 @@ module Pangea
     def cpus
       list = []
       ref_call(:get_host_CPUs).each do |hcpu|
-        list << HostCpu.new(@link, hcpu, @link.client.proxy('host_cpu'))
+        list << HostCpu.new(@link, hcpu)
       end
       list
     end
@@ -143,7 +152,7 @@ module Pangea
     end
 
     def metrics
-      HostMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('host_metrics'))
+      HostMetrics.new(@link, ref_call(:get_metrics))
     end
 
     #
@@ -153,7 +162,7 @@ module Pangea
       nets = [] 
       p = @link.client.proxy( 'network' )
       p.get_all(@link.sid)['Value'].each do |ref|
-        nets << Network.new(@link, ref, p)
+        nets << Network.new(@link, ref)
       end
       nets
     end
@@ -175,7 +184,12 @@ module Pangea
   end
 
   class HostMetrics < XObject
-    
+
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'host_metrics'
+    end
+
     def memory_total
       ref_call :get_memory_total
     end
@@ -194,6 +208,12 @@ module Pangea
   end
   
   class HostCpu < XObject
+
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'host_cpu'
+    end
+
     #
     # xen-api: host_cpu.get_number
     #
@@ -245,6 +265,11 @@ module Pangea
 
   class VM < XObject
     
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'VM'
+    end
+
     #
     # xen-api: VM.get_name_label
     #
@@ -256,14 +281,14 @@ module Pangea
     # xen-api: VM.get_metrics
     #
     def metrics
-      VMMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('VM_metrics'))
+      VMMetrics.new(@link, ref_call(:get_metrics))
     end
     
     #
     # xen-api: VM.get_guest_metrics
     #
     def guest_metrics
-      VMGuestMetrics.new(@link, ref_call(:get_guest_metrics), @link.client.proxy('VM_guest_metrics'))
+      VMGuestMetrics.new(@link, ref_call(:get_guest_metrics))
     end
 
     #
@@ -272,7 +297,7 @@ module Pangea
     def vifs
       list = []
       ref_call(:get_VIFs).each do |vif|
-        list << VIF.new(@link, vif, @link.client.proxy('VIF'))
+        list << VIF.new(@link, vif)
       end
       list
     end
@@ -311,7 +336,7 @@ module Pangea
     #
     def resident_on
       ref = ref_call(:get_resident_on)
-      Host.new(@link, ref, @link.client.proxy('host'))
+      Host.new(@link, ref)
     end
     
     #
@@ -391,12 +416,21 @@ module Pangea
   # xen-api class: VM_guest_metrics
   #
   class VMGuestMetrics < XObject
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'VM_guest_metrics'
+    end
   end
 
   #
   # xen-api class: VM_metrics
   #
   class VMMetrics < XObject
+    
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'VM_metrics'
+    end
     
     #
     # xen-api: VM_metrics.get_memory_actual
@@ -465,6 +499,11 @@ module Pangea
   
   class VIF < XObject
     
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'VIF'
+    end
+    
     #
     # xen-api: VIF.get_device
     #
@@ -483,14 +522,14 @@ module Pangea
     # xen-api: VIF.get_metrics
     #
     def metrics
-      VIFMetrics.new(@link, ref_call(:get_metrics), @link.client.proxy('VIF_metrics'))
+      VIFMetrics.new(@link, ref_call(:get_metrics))
     end
 
     #
     # xen-api: VIF.get_vm
     #
     def vm
-      VM.new(@link, ref_call(:get_VM), @link.client.proxy('VM'))
+      VM.new(@link, ref_call(:get_VM))
     end
 
     #
@@ -509,6 +548,11 @@ module Pangea
 
   class VIFMetrics < XObject
 
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'VIF_metrics'
+    end
+
     def io_read_kbs
       ref_call :get_io_read_kbs
     end
@@ -521,6 +565,11 @@ module Pangea
   end
 
   class Network < XObject
+    def initialize(link, ref)
+      super(link, ref)
+      @proxy_name = 'network'
+    end
+
     def label
       ref_call :get_name_label
     end
@@ -555,7 +604,7 @@ module Pangea
     def vifs
       l = []
       ref_call(:get_VIFs).each do |ref|
-        l << VIF.new(@link, ref, @link.client.proxy('VIF'))
+        l << VIF.new(@link, ref)
       end
       l
     end
