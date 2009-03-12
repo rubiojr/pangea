@@ -1,6 +1,7 @@
 require 'xmlrpc/client'
 require "#{File.join(File.dirname(__FILE__), 'memoizers/timed_memoizer.rb')}"
 require "#{File.join(File.dirname(__FILE__), 'memoizers/simple_memoizer.rb')}"
+require "#{File.join(File.dirname(__FILE__), 'memoizers/dumb_memoizer.rb')}"
 require "#{File.join(File.dirname(__FILE__), 'memoizers/strategy.rb')}"
 require "#{File.join(File.dirname(__FILE__), 'util/string.rb')}"
 
@@ -16,6 +17,7 @@ module Pangea
       @index = {}
       @links = []
       @cluster_nodes = nodes
+      @node_list = []
     end
 
     def [](name)
@@ -30,15 +32,15 @@ module Pangea
     end
 
     def nodes
+      return @node_list if @node_list.size > 0
       init_links
-      list = []
       @links.each do |hl|
         ref = hl.client.call('host.get_all', hl.sid)['Value'][0]
         h = Host.new(hl, ref)
         @index[h.label] = h
-        list << h
+        @node_list << h
       end
-      list
+      @node_list
     end
 
     private
@@ -51,8 +53,6 @@ module Pangea
                           ) 
       end
     end
-    
-    memoize :nodes
   end
 
   class Link
@@ -63,11 +63,24 @@ module Pangea
       @xmlrpc_url = url
       @username = username
       @password = password
-      puts "hyperlinking to #{url}"
+      connect
+    end
+
+    def connect
+      puts "hyperlinking to #{@xmlrpc_url}"
       $stdout.flush
-      @client = XMLRPC::Client.new2(url)
-      @session = @client.proxy('session')
-      @sid = @session.login_with_password(username, password)['Value']
+      begin
+        @client = XMLRPC::Client.new2(@xmlrpc_url)
+        @session = @client.proxy('session')
+        @sid = @session.login_with_password(@username, @password)['Value']
+      rescue Exception => e
+        raise LinkConnectError.new("Error connecting to the hypervisor #{@xmlrpc_url} (#{e.message})")
+      end
+    end
+
+    def reconnect
+      puts "Trying to reconnect to #{@xmlrpc_url}"
+      connect
     end
 
     #def send(proxy, method, *args)
@@ -93,9 +106,21 @@ module Pangea
 
     def ref_call(method)
       if @proxy.nil?
+        # first ref_call, init proxy
         @proxy = @link.client.proxy(@proxy_name)
       end
-      @proxy.send(method, @link.sid, @ref)['Value']
+      begin
+        return @proxy.send(method, @link.sid, @ref)['Value']
+      rescue Exception => e
+        begin
+          # something happened, we try to reconnect once
+          @link.reconnect
+          @proxy = @link.client.proxy(@proxy_name)
+          return @proxy.send(method, @link.sid, @ref)['Value']
+        rescue Exception => e
+          raise ProxyCallError.new("Error sending request to proxy #{@proxy_name}. Link might be dead (#{e.message})")
+        end
+      end
     end
 
     def uuid
@@ -263,6 +288,9 @@ module Pangea
   end
 
 
+  #
+  # xen-api: VM
+  # 
   class VM < XObject
     
     def initialize(link, ref)
@@ -609,6 +637,11 @@ module Pangea
       l
     end
 
+  end
+
+  class LinkConnectError < Exception
+  end
+  class ProxyCallError < Exception
   end
 
 end # module Pangea
