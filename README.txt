@@ -1,10 +1,10 @@
 = pangea
 
-* FIX (url)
+* http://www.xen-fu.org
 
 == DESCRIPTION:
 
-FIX (describe your package)
+Xen-Api Ruby Implementation
 
 == FEATURES/PROBLEMS:
 
@@ -16,11 +16,11 @@ FIX (describe your package)
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+* Ruby1.8.7 is required (XObject.ref_call doesn't work in ruby1.8.6
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+* gem install pangea
 
 == LICENSE:
 
