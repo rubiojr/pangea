@@ -7,7 +7,7 @@ module Pangea
     end
 
     def self.strategy
-      @strategy || Pangea::Memoizers::TimedMemoizer
+      @strategy || Pangea::Memoizers::DumbMemoizer
     end
 
   end
