@@ -4,6 +4,7 @@ require 'test/test_vm'
 require 'test/test_vif_metrics'
 require 'test/test_network'
 require 'test/test_vif'
+require 'test/test_cluster'
 
 class TS_Pangea
   def self.suite
@@ -12,6 +13,7 @@ class TS_Pangea
     suite << TestVIF.suite
     suite << TestNetwork.suite
     suite << TestVIFMetrics.suite
+    suite << TestCluster.suite
     return suite
   end
 end
