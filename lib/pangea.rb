@@ -1,26 +1,23 @@
 require 'xmlrpc/client'
-require "#{File.join(File.dirname(__FILE__), 'memoizers/timed_memoizer.rb')}"
-require "#{File.join(File.dirname(__FILE__), 'memoizers/simple_memoizer.rb')}"
-require "#{File.join(File.dirname(__FILE__), 'memoizers/dumb_memoizer.rb')}"
-require "#{File.join(File.dirname(__FILE__), 'memoizers/strategy.rb')}"
 require "#{File.join(File.dirname(__FILE__), 'util/string.rb')}"
-
-Module.send :include, Pangea::Memoizers.strategy
 
 module Pangea
 
-  VERSION = '0.0.20'
+  VERSION = "0.0.20090313130744"
 
+  #
+  # A Xen Cluster is a group of Hosts
+  #
   class Cluster
 
-    def initialize(nodes={})
+    def initialize(config={})
       @index = {}
-      @links = []
-      @cluster_nodes = nodes
-      @node_list = []
+      @config = config 
+      @nodes = []
     end
 
     def [](name)
+      # initialize the node list
       nodes if @index.empty?
       @index[name]
     end
@@ -31,39 +28,41 @@ module Pangea
       nodes
     end
 
+    #
+    # Returns the list of nodes in the Cluster
+    #
     def nodes
-      return @node_list if @node_list.size > 0
-      init_links
-      @links.each do |hl|
-        ref = hl.client.call('host.get_all', hl.sid)['Value'][0]
-        h = Host.new(hl, ref)
-        @index[h.label] = h
-        @node_list << h
-      end
-      @node_list
+      return @nodes if (not @nodes.nil? and @nodes.size > 0)
+      init_nodes
+      @nodes
     end
 
     private
-    def init_links
-      return if not @links.empty?
-      @cluster_nodes.each_key do |n|
-        @links << Link.new(@cluster_nodes[n]['url'], 
-                           @cluster_nodes[n]['username'] || '', 
-                           @cluster_nodes[n]['password'] || ''
+    def init_nodes
+      @config.each_key do |n|
+        h = Host.connect(@config[n]['url'], 
+                           @config[n]['username'] || '', 
+                           @config[n]['password'] || ''
                           ) 
+        @index[h.label] = h
+        @nodes << h
       end
     end
   end
 
+  #
+  # Link is the connection to the hypervisor
+  # 
+  # Every Link is associated to one host
+  #
   class Link
 
-    attr_reader :client, :sid, :url
+    attr_reader :client, :sid, :url, :connected
 
     def initialize(url, username='foo', password='bar')
       @xmlrpc_url = url
       @username = username
       @password = password
-      connect
     end
 
     def connect
@@ -73,27 +72,12 @@ module Pangea
         @client = XMLRPC::Client.new2(@xmlrpc_url)
         @session = @client.proxy('session')
         @sid = @session.login_with_password(@username, @password)['Value']
+        @connected = true
       rescue Exception => e
         raise LinkConnectError.new("Error connecting to the hypervisor #{@xmlrpc_url} (#{e.message})")
       end
     end
 
-    def reconnect
-      puts "Trying to reconnect to #{@xmlrpc_url}"
-      connect
-    end
-
-    #def send(proxy, method, *args)
-    #  p = ""
-    #  if args.empty?
-    #    return eval("@#{proxy.to_s}.#{method}(@sid)")
-    #  else
-    #    args.each do |a|
-    #      p += ",'#{a}'"
-    #    end
-    #    return eval("@#{proxy.to_s}.#{method}(@sid #{p})")
-    #  end
-    #end
   end
 
   class XObject
@@ -112,14 +96,7 @@ module Pangea
       begin
         return @proxy.send(method, @link.sid, @ref)['Value']
       rescue Exception => e
-        begin
-          # something happened, we try to reconnect once
-          @link.reconnect
-          @proxy = @link.client.proxy(@proxy_name)
-          return @proxy.send(method, @link.sid, @ref)['Value']
-        rescue Exception => e
           raise ProxyCallError.new("Error sending request to proxy #{@proxy_name}. Link might be dead (#{e.message})")
-        end
       end
     end
 
@@ -127,7 +104,6 @@ module Pangea
       ref_call :get_uuid
     end
     
-    memoize :uuid
   end
 
   class Host < XObject
@@ -136,7 +112,7 @@ module Pangea
       super(link, ref)
       @proxy_name = 'host'
     end
-
+    
     def label
       ref_call :get_name_label
     end
@@ -199,13 +175,32 @@ module Pangea
       "Xen Version: #{software_version['Xen']}"
     end
 
-    memoize :networks
-    memoize :metrics
-    memoize :sched_policy
-    memoize :label
-    memoize :resident_vms
-    memoize :software_version
-    memoize :cpus
+    def self.connect(url, username, password)
+      @link = Link.new(url, username, password)
+      @link.connect
+      @ref = @link.client.call('host.get_all', @link.sid)['Value'][0]
+      Host.new(@link, @ref)
+    end
+
+    def reconnect
+      raise LinkConnectError.new("You need to connect at least once before reconnecting") if @link.nil?
+      @link.connect
+      @ref = @link.client.call('host.get_all', @link.sid)['Value'][0]
+    end
+
+    #
+    # Checks if the connection to the hypervisor is alive
+    #
+    def alive?
+      begin
+        ref_call :get_uuid
+      rescue Exception => e
+        puts e.message
+        return false
+      end
+      true
+    end
+    
   end
 
   class HostMetrics < XObject
@@ -228,8 +223,6 @@ module Pangea
       "Free Memory: #{Pangea::Util.humanize_bytes(memory_free)}"
     end
     
-    memoize :memory_free
-    memoize :memory_total
   end
   
   class HostCpu < XObject
@@ -280,11 +273,6 @@ module Pangea
       ref_call :get_utilisation
     end
 
-    memoize :model_name
-    memoize :utilisation
-    memoize :speed
-    memoize :vendor
-    memoize :number
   end
 
 
@@ -425,18 +413,6 @@ module Pangea
       "Max Mem: #{Util::humanize_bytes(max_mem)}" + eol
     end
 
-    memoize :label
-    memoize :metrics
-    memoize :vifs
-    memoize :actions_after_crash
-    memoize :actions_after_reboot
-    memoize :actions_after_shutdown
-    memoize :domid
-    memoize :resident_on
-    memoize :power_state
-    memoize :max_mem
-    memoize :dyn_min_mem
-    memoize :dyn_max_mem
   end 
 
 
@@ -568,10 +544,6 @@ module Pangea
     #  Network.new(@link, ref_call(:get_network), @link.client.proxy('network'))
     #end
     
-    memoize :vm
-    memoize :metrics
-    memoize :mac
-    memoize :device
   end
 
   class VIFMetrics < XObject
@@ -588,8 +560,6 @@ module Pangea
     def io_write_kbs
       ref_call :get_io_write_kbs
     end
-    memoize :io_read_kbs
-    memoize :io_write_kbs
   end
 
   class Network < XObject
