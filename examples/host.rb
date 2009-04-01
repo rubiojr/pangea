@@ -6,7 +6,7 @@ rescue
 end
 require 'yaml'
 
-host = Pangea::Host.connect('http://xen-test.example.net:9363', 'foo', 'bar')
+host = Pangea::Host.connect('http://xen.example.net:9363', 'foo', 'bar')
 
 puts "******* HOST DETAILS *******"
 # host unique identifier

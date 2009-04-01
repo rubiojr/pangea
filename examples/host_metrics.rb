@@ -1,23 +1,14 @@
 require 'rubygems'
-require 'pangea'
-require 'yaml'
-
-config = nil
-File.open 'cluster_config.yml' do |f|
-  config = YAML.load f
+begin
+  require '../lib/pangea'
+rescue
+  require 'pangea'
 end
 
-cluster = Pangea::Cluster.new(config['cluster_nodes'])
-
-host = cluster.hosts.first
+host = Pangea::Host.connect('http://xen.example.net:9363','user','password')
 metrics = host.metrics
 
 puts "Metrics for #{host.label}"
-
-# total host memory
 # Pange::Util.humanize_bytes translate bytes to MB, GB, TB...
-puts Pangea::Util.humanize_bytes( metrics.memory_total )
-
-# free host memory
-# Memory Available in the host to be used by the DomUs
-puts Pangea::Util.humanize_bytes( metrics.memory_free )
+puts "Total Memory: #{Pangea::Util.humanize_bytes( metrics.memory_total )}"
+puts "Free Memory: #{Pangea::Util.humanize_bytes( metrics.memory_free )}"
