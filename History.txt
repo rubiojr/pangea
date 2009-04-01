@@ -1,3 +1,4 @@
-=== 0.0.10 / 2008-12-30
+=== 0.1 / 2008-04-01
 
-* Added memoizers
+* Initial pangea release
+* read-only operations implemented

@@ -1,6 +1,6 @@
-= pangea
+= Pangea 0.1
 
-* http://www.xen-fu.org
+* http://www.xen-fu.org/blog
 
 == DESCRIPTION:
 
@@ -8,7 +8,10 @@ Xen-Api Ruby Implementation
 
 == FEATURES/PROBLEMS:
 
-* FIX (list of features or problems)
+* Read-only operations implemented ATM
+* Needs documentation
+* Add more examples
+* API is subject to change till we reach 1.0
 
 == SYNOPSIS:
 
@@ -20,6 +23,7 @@ Xen-Api Ruby Implementation
 
 == INSTALL:
 
+* gem source -a http://gems.xen-fu.org
 * gem install pangea
 
 == LICENSE:

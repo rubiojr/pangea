@@ -4,6 +4,8 @@ README.txt
 Rakefile
 bin/pangea
 lib/pangea.rb
+lib/pangea/objects.rb
+lib/pangea/exceptions.rb
 lib/memoizers/simple_memoizer.rb
 lib/memoizers/strategy.rb
 lib/memoizers/timed_memoizer.rb
