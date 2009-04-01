@@ -17,7 +17,3 @@ Hoe.new('Pangea', Pangea::VERSION) do |p|
   p.developer('Sergio Rubio', 'sergio@rubio.name')
 end
 
-task :publish_gem do
-  `scp pkg/*.gem root@slmirror.csic.es:/espejo/rubygems/gems/`
-  `ssh slmirror gem generate_index -d /espejo/rubygems/`
-end
