@@ -1,5 +1,5 @@
 #!/bin/sh
-VERSION=0.0.`ruby -r lib/pangea.rb -e 'puts Time.now.strftime("%Y%m%d%H%M%S")'`
+VERSION=0.1.`ruby -r lib/pangea.rb -e 'puts Time.now.strftime("%Y%m%d%H%M%S")'`
 echo $VERSION
 sed -i bak "s/VERSION.*$/VERSION = \"$VERSION\"/" lib/pangea.rb
 rm pkg/*.gem
