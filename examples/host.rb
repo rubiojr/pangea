@@ -1,14 +1,34 @@
 require 'rubygems'
-require 'pangea'
+begin
+  require '../lib/pangea'
+rescue
+  require 'pangea'
+end
 require 'yaml'
 
-config = nil
-File.open 'cluster_config.yml' do |f|
-  config = YAML.load f
+host = Pangea::Host.connect('http://xen9.gestion.privada.csic.es:9363', 'foo', 'bar')
+
+puts "******* HOST DETAILS *******"
+# host unique identifier
+puts "UUID: #{host.uuid}"
+# is the host (dom0) alive?
+puts "Alive?: #{host.alive?}"
+# get the hostname
+puts "Hostname: #{host.label}"
+puts "Memory Free: #{host.metrics.memory_free}"
+puts "CPUs: #{host.cpus.size}"
+puts "Xen Version: #{host.software_version['Xen']}"
+puts "Arch: #{host.software_version['machine']}"
+puts "Kernel Version: #{host.software_version['release']}"
+
+# list all the domUs
+puts "******* RESIDENT VMs *******"
+host.resident_vms.each do |vm|
+  puts vm.label
 end
 
-cluster = Pangea::Cluster.new(config['cluster_nodes'])
-
-cluster.hosts.each do |host|
-  puts host
+# list all the networks
+puts "******* NETWORKS *******"
+host.networks.each do |net|
+  puts net.label
 end
