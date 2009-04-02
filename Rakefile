@@ -17,3 +17,10 @@ Hoe.new('Pangea', Pangea::VERSION) do |p|
   p.developer('Sergio Rubio', 'sergio@rubio.name')
 end
 
+task :publish_gem do
+  `scp pkg/*.gem xen-fu.org:~/gems.xen-fu.org/gems/`
+  `ssh xen-fu.org gem generate_index -d /home/rubiojr/gems.xen-fu.org/`
+end
+task :upload_docs do
+  `rsync --delete -rtlz doc/ xen-fu.org:~/xen-fu.org/pangea/doc/`
+end

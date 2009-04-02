@@ -1,3 +1,4 @@
 *.swp
 examples/*config.yml
 pkg/*
+doc/*
