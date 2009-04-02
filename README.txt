@@ -35,7 +35,7 @@ Xen-Api Ruby Implementation
 
 == INSTALL:
 
-* gem source -a http://gems.xen-fu.org
+* gem source -a \http://gems.xen-fu.org
 * gem install pangea
 
 == LICENSE:

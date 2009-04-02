@@ -5,7 +5,7 @@ module Pangea
   # 
   # Every Link is associated to one host
   #
-  class Link
+  class Link #:nodoc:
 
     attr_reader :client, :sid, :url, :connected
 
@@ -30,7 +30,14 @@ module Pangea
 
   end
 
-  class XObject
+  #
+  # Base class for every Xen Object
+  #
+  # Do not use this class.
+  #
+  # There's no direct mapping to xen-api AFAIK
+  #
+  class XObject #:nodoc:
 
     def initialize(link, ref)
       @ref = ref
@@ -52,6 +59,8 @@ module Pangea
 
     #
     # This is standard in every Xen Object
+    #
+    # Returns the unique identifier
     # 
     def uuid
       ref_call :get_uuid
@@ -59,17 +68,39 @@ module Pangea
     
   end
 
+  #
+  # A Physical Host
+  # 
+  # xen-api: Class host
+  #
+  # <tt>
+  # require 'pangea'
+  #
+  # host = Host.connect(\'http://xen.example.net', 'username', 'password')
+  # </tt>
+  #
   class Host < XObject
     
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'host'
     end
     
+    #
+    # Returns the label of the Host (hostname)
+    #
     def label
       ref_call :get_name_label
     end
 
+    #
+    # Get the list of resident virtual machines controlled
+    # by the hypervisor.
+    #
+    # Returns an Array of Pangea::VM objects 
+    #
+    # xen-api: host.get_resident_VMs
+    #
     def resident_vms
       vms = []
       ref_call(:get_resident_VMs).each do |vm|
@@ -79,7 +110,12 @@ module Pangea
     end
 
     # 
-    # xen-api: Host.get_host_cpus
+    # Get the list of resident virtual machines controlled
+    # by the hypervisor.
+    #
+    # Returns an Array of Pangea::HostCpu objects 
+    #
+    # xen-api: host.get_host_cpus
     #
     def cpus
       list = []
@@ -90,27 +126,51 @@ module Pangea
     end
     
     #
-    # xen-api: Host.get_software_version
+    # List some properties from the hypervisor:
+    #
+    # machine: Host Architecture
+    # Xen:     Xen Version
+    # system:  Host OS (i.e. Linux)
+    # release: Xen Kernel Version
+    # host:    hostname
     #
     # Returns a Hash
+    #
+    # xen-api: host.get_software_version
     #
     def software_version
       ref_call :get_software_version
     end
     
     #
-    # xen-api: Host.get_sched_policy
+    # Get the Xen scheduling policy
+    #
+    # Returns a string
+    #
+    # xen-api: host.get_sched_policy
     #
     def sched_policy
       ref_call :get_sched_policy
     end
 
+    #
+    # Get the Pangea::HostMetrics object for this host
+    #
+    # xen-api: host.get_metrics
+    #
     def metrics
       HostMetrics.new(@link, ref_call(:get_metrics))
     end
 
     #
-    # There's no direct mapping to xen-api
+    # Returns the list of networks available in this host
+    #
+    # If you are using a bridged network configuration
+    # ('network-script network-bridge' in xend-config.sxp), it will 
+    # return an Array of Pangea::Network objects available in the host,
+    # one for each bridge available.
+    # 
+    # There's no direct mapping to xen-api AFAIK
     #
     def networks
       nets = [] 
@@ -128,6 +188,13 @@ module Pangea
       "Xen Version: #{software_version['Xen']}"
     end
 
+    #
+    # Connect to the Host xml-rpc server
+    #
+    # Returns a Pangea::Host object
+    #
+    # There's no direct mapping to xen-api
+    #
     def self.connect(url, username, password)
       @link = Link.new(url, username, password)
       @link.connect
@@ -135,6 +202,11 @@ module Pangea
       Host.new(@link, @ref)
     end
 
+    #
+    # Reconnect to the Host
+    #
+    # There's no direct mapping to xen-api
+    #
     def reconnect
       raise LinkConnectError.new("You need to connect at least once before reconnecting") if @link.nil?
       @link.connect
@@ -142,7 +214,9 @@ module Pangea
     end
 
     #
-    # Checks if the connection to the hypervisor is alive
+    # Checks if the connection to the host xml-rpc server is alive
+    #
+    # There's no direct mapping to xen-api
     #
     def alive?
       begin
@@ -156,9 +230,14 @@ module Pangea
     
   end
 
+  #
+  # The metrics associated with a host
+  #
+  # xen-api: Class host_metrics
+  # 
   class HostMetrics < XObject
 
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'host_metrics'
     end
@@ -178,9 +257,14 @@ module Pangea
     
   end
   
+  #
+  # A Physical CPU
+  #
+  # xen-api: Class host_cpu
+  #
   class HostCpu < XObject
 
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'host_cpu'
     end
@@ -230,15 +314,19 @@ module Pangea
 
 
   #
+  # A Virtual Machine or Guest (DomU)
+  #
   # xen-api: VM
   # 
   class VM < XObject
     
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'VM'
     end
 
+    #
+    # VM Label (same one you see when you run 'xm list')
     #
     # xen-api: VM.get_name_label
     #
@@ -370,21 +458,25 @@ module Pangea
 
 
   #
-  # xen-api class: VM_guest_metrics
+  # Metrics reported by the guest (from 'inside' the guest)
+  #
+  # xen-api: Class VM_guest_metrics
   #
   class VMGuestMetrics < XObject
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'VM_guest_metrics'
     end
   end
 
   #
+  # Metrics associated with a VM
+  #
   # xen-api class: VM_metrics
   #
   class VMMetrics < XObject
     
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'VM_metrics'
     end
@@ -456,7 +548,7 @@ module Pangea
   
   class VIF < XObject
     
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'VIF'
     end
@@ -499,24 +591,39 @@ module Pangea
     
   end
 
+  #
+  # Metrics associated with a virtual network device
+  #
+  # xen-api: Class VIF_metrics
+  #
   class VIFMetrics < XObject
 
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'VIF_metrics'
     end
 
+    #
+    # VIF input Kbits/s
+    #
+    # xen-api: VIF_metrics.get_io_read_kbs
+    #
     def io_read_kbs
       ref_call :get_io_read_kbs
     end
 
+    #
+    # VIF output Kbits/s
+    #
+    # xen-api: VIF_metrics.get_io_read_kbs
+    #
     def io_write_kbs
       ref_call :get_io_write_kbs
     end
   end
 
   class Network < XObject
-    def initialize(link, ref)
+    def initialize(link, ref) #:nodoc:
       super(link, ref)
       @proxy_name = 'network'
     end
@@ -526,10 +633,10 @@ module Pangea
     end
 
     #
-    # xen-api: network.get_default_gateway
-    #
-    # returns a string or nil if the gateway is not
+    # Returns a string or nil if the gateway is not
     # defined.
+    #
+    # xen-api: network.get_default_gateway
     #
     def default_gateway
       gw = ref_call :get_default_gateway
@@ -538,10 +645,10 @@ module Pangea
     end
     
     #
-    # xen-api: network.get_default_netmask
-    #
-    # returns a string or nil if the netmask is not
+    # Returns a string or nil if the netmask is not
     # defined.
+    #
+    # xen-api: network.get_default_netmask
     #
     def default_netmask
       nm = ref_call :get_default_netmask
@@ -549,6 +656,8 @@ module Pangea
       gw
     end
 
+    #
+    # Virtual Interfaces bridged to the network bridge
     #
     # xen-api: network.get_VIFs
     #

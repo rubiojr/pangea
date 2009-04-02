@@ -1,4 +1,4 @@
-module Pangea
+module Pangea #:nodoc:
   module Memoizers
 
     def self.strategy=(mod)

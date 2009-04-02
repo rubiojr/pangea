@@ -1,5 +1,5 @@
-module Pangea
-  module Memoizers
+module Pangea #:nodoc:
+  module Memoizers #:nodoc:
     #
     # based on http://github.com/JackDanger/simple_memoize
     #

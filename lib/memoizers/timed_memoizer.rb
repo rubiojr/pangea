@@ -1,4 +1,4 @@
-module Pangea
+module Pangea #:nodoc:
   module Memoizers
     module TimedMemoizer 
       def memoize(method_name, p={})

@@ -1,5 +1,5 @@
-module Pangea
-  module Memoizers
+module Pangea 
+  module Memoizers #:nodoc:all
     module DumbMemoizer
       def memoize(method_name, p={})
       end
