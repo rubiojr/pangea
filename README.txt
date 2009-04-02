@@ -15,7 +15,19 @@ Xen-Api Ruby Implementation
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+  require 'rubygems'
+
+  require 'pangea'
+
+  host = Pangea::Host.connect('http://xen.example.net:9363', 'foo', 'bar')
+
+  host.resident_vms.each do |vm|
+    # do something with the Pangea::VM object
+  end
+
+  host.networks.each do |net|
+    # do something with the Pangea::Network object
+  end
 
 == REQUIREMENTS:
 
