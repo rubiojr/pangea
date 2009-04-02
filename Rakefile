@@ -27,3 +27,5 @@ end
 task :upload_edge_docs do
   `rsync --delete -rtlz doc/ xen-fu.org:~/xen-fu.org/pangea-edge/doc/`
 end
+task :docs_all => [:redocs, :upload_docs, :upload_edge_docs] do
+end
