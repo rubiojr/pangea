@@ -2,7 +2,7 @@ module Pangea
   #
   # A Xen Cluster is a group of Hosts
   #
-  class Cluster
+  class Cluster #:nodoc:
 
     def initialize(config={})
       @index = {}
