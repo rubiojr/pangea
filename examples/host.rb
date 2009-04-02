@@ -4,9 +4,12 @@ begin
 rescue
   require 'pangea'
 end
-require 'yaml'
+# cmdline helper
+require "#{File.join(File.dirname(__FILE__), 'base.rb')}"
+# from base.rb
+host_url = ask_host
 
-host = Pangea::Host.connect('http://xen.example.net:9363', 'foo', 'bar')
+host = Pangea::Host.connect(host_url, 'foo', 'bar')
 
 puts "******* HOST DETAILS *******"
 # host unique identifier

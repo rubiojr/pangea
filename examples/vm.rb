@@ -4,26 +4,22 @@ begin
 rescue
   require 'pangea'
 end
+# cmdline helper
+require "#{File.join(File.dirname(__FILE__), 'base.rb')}"
+# from base.rb
+host_url = ask_host
 
-host = Pangea::Host.connect('http://xen9.gestion.privada.csic.es:9363', 'foo', 'bar')
-
-puts "Listing VMs resident in #{host.label}..."
+host = Pangea::Host.connect(host_url, 'foo', 'bar')
 
 host.resident_vms.each do |vm|
-  # vm label (name listed by 'xm list')
-  puts "VM Label:       #{vm.label}"
-  puts "UUID:           #{vm.uuid}"
-  puts "Power State:    #{vm.power_state}"
-  # maxmex parameter in domU config file
-  puts "Max Mem:        #{Pangea::Util.humanize_bytes(vm.max_mem)}"
-  # memory parameter in domU config file
-  puts "Memory:         #{vm.dyn_min_mem}"
-  # host hosting the vm
-  puts "Resident On:    #{vm.resident_on.label}"
-  puts "Dom ID:         #{vm.domid}"
-  puts "Is dom0?:       #{vm.is_control_domain?}"
-  puts "Kernel:         #{vm.pv_kernel}"
-  puts "Number of VIFs: #{vm.vifs.size}"
-  puts "--------"
+  puts "**** VM #{vm.label} ****"
+  puts "On Crash:            #{vm.actions_after_crash}"
+  puts "On Reboot:           #{vm.actions_after_reboot}"
+  puts "Domain ID:           #{vm.domid}"
+  puts "Current Memory:      #{vm.dyn_min_mem}"
+  puts "Max Memory:          #{vm.dyn_max_mem}"
+  puts "Power State:         #{vm.power_state}"
+  puts "Virtual Interfaces:  #{vm.vifs.size}"
+  puts "Host:       #{vm.resident_on.label}"
+  puts
 end
-
