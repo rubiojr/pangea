@@ -5,16 +5,11 @@ require 'test/config.rb'
 class TestVMMetrics < Test::Unit::TestCase
 
   def setup
-    @hc = Pangea::Cluster.new(
-      { 'xen7' => {
-          'url' => TEST_HV
-        }
-      }
-    )
+    @host = Pangea::Host.connect(TEST_HV, 'foo', 'bar')
   end
 
   def test_uuid
-    @hc.hosts[0].resident_vms.each do |vm|
+    @host.resident_vms.each do |vm|
       assert( vm.metrics.uuid.is_a? String )
     end
   end

@@ -5,16 +5,11 @@ require 'test/config.rb'
 class TestVIFMetrics < Test::Unit::TestCase
 
   def setup
-    @hc = Pangea::Cluster.new(
-      { 'xen7' => {
-          'url' => TEST_HV
-        }
-      }
-    )
+    @host = Pangea::Host.connect(TEST_HV, 'foo', 'bar')
   end
 
   def test_uuid
-    @hc.hosts[0].resident_vms.each do |vm|
+    @host.resident_vms.each do |vm|
       vm.vifs.each do |vif|
         assert( vif.metrics.uuid.is_a? String )
       end
@@ -22,7 +17,7 @@ class TestVIFMetrics < Test::Unit::TestCase
   end
 
   def test_io_read_kbs
-    @hc.hosts[0].resident_vms.each do |vm|
+    @host.resident_vms.each do |vm|
       vm.vifs.each do |vif|
         assert( vif.metrics.io_read_kbs.is_a? Float )
       end
@@ -30,7 +25,7 @@ class TestVIFMetrics < Test::Unit::TestCase
   end
 
   def test_io_write_kbs
-    @hc.hosts[0].resident_vms.each do |vm|
+    @host.resident_vms.each do |vm|
       vm.vifs.each do |vif|
         assert( vif.metrics.io_write_kbs.is_a? Float )
       end
