@@ -16,7 +16,7 @@ module Pangea
     end
 
     def connect
-      puts "hyperlinking to #{@xmlrpc_url}"
+      #puts "hyperlinking to #{@xmlrpc_url}"
       $stdout.flush
       begin
         @client = XMLRPC::Client.new2(@xmlrpc_url)
@@ -222,7 +222,7 @@ module Pangea
       begin
         ref_call :get_uuid
       rescue Exception => e
-        puts e.message
+        #puts e.message
         return false
       end
       true
