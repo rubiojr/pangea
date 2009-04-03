@@ -2,7 +2,6 @@ History.txt
 Manifest.txt
 README.txt
 Rakefile
-bin/pangea
 lib/pangea.rb
 lib/pangea/objects.rb
 lib/pangea/exceptions.rb
