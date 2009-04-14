@@ -1,16 +1,14 @@
 Gem::Specification.new do |s|
   s.name = %q{pangea}
-  s.version = "0.1.20090401135815"
+  s.version = "0.1.20090403134419"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Sergio RubioSergio Rubio"]
-  s.date = %q{2009-04-01}
-  s.default_executable = %q{pangea}
+  s.date = %q{2009-04-14}
   s.description = %q{Xen-API Ruby Implementation}
   s.email = %q{sergio@rubio.namesergio@rubio.name}
-  s.executables = ["pangea"]
   s.extra_rdoc_files = ["History.txt", "Manifest.txt", "README.txt"]
-  s.files = ["History.txt", "Manifest.txt", "README.txt", "Rakefile", "bin/pangea", "lib/pangea.rb", "lib/pangea/objects.rb", "lib/pangea/exceptions.rb", "lib/memoizers/simple_memoizer.rb", "lib/memoizers/strategy.rb", "lib/memoizers/timed_memoizer.rb", "lib/util/string.rb", "test/test_pangea.rb", "test/test_cluster.rb", "test/test_network.rb", "test/test_vif.rb", "test/test_vif_metrics.rb", "test/test_vm.rb", "test/test_vm_metrics.rb"]
+  s.files = ["History.txt", "Manifest.txt", "README.txt", "Rakefile", "examples/base.rb", "examples/host.rb", "examples/host_cpu.rb", "examples/host_metrics.rb", "examples/vif.rb", "examples/vm.rb", "lib/memoizers/dumb_memoizer.rb", "lib/memoizers/simple_memoizer.rb", "lib/memoizers/strategy.rb", "lib/memoizers/timed_memoizer.rb", "lib/pangea.rb", "lib/pangea/cluster.rb", "lib/pangea/exceptions.rb", "lib/pangea/objects.rb", "lib/util/string.rb", "pangea.gemspec", "scripts/newrelease", "scripts/publish_release", "test/config.rb", "test/suite.rb", "test/test_network.rb", "test/test_pangea.rb", "test/test_vif.rb", "test/test_vif_metrics.rb", "test/test_vm.rb", "test/test_vm_metrics.rb"]
   s.has_rdoc = true
   s.homepage = %q{http://github.com/rubiojr/pangea}
   s.rdoc_options = ["--main", "README.txt"]
@@ -18,7 +16,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = %q{pangea}
   s.rubygems_version = %q{1.3.1}
   s.summary = %q{Ruby Xen API}
-  s.test_files = ["test/test_cluster.rb", "test/test_network.rb", "test/test_pangea.rb", "test/test_vif.rb", "test/test_vif_metrics.rb", "test/test_vm.rb", "test/test_vm_metrics.rb"]
+  s.test_files = ["test/test_network.rb", "test/test_pangea.rb", "test/test_vif.rb", "test/test_vif_metrics.rb", "test/test_vm.rb", "test/test_vm_metrics.rb"]
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
