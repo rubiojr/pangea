@@ -43,6 +43,7 @@ module Pangea
       @ref = ref
       @link = link
       @proxy_name = nil
+      @proxy = nil
     end
 
     def ref_call(method)
